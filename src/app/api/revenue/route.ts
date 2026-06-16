@@ -5,6 +5,6 @@ import { getRevenueStats } from "@/lib/store";
 export async function GET(request: NextRequest) {
   if (!isAdminRequest(request)) return unauthorizedResponse();
 
-  const stats = getRevenueStats();
+  const stats = await getRevenueStats();
   return NextResponse.json(stats);
 }

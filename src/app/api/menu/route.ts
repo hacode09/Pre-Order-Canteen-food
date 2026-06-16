@@ -5,7 +5,7 @@ import { MenuCategory } from "@/types";
 
 export async function GET(request: NextRequest) {
   const category = request.nextUrl.searchParams.get("category");
-  let menu = getMenu();
+  let menu = await getMenu();
   if (category) {
     menu = menu.filter((item) => item.category === category);
   }
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const item = addMenuItem({
+  const item = await addMenuItem({
     name,
     description,
     price: Number(price),

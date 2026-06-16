@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useCallback, useEffect, useState, use } from "react";
 import Link from "next/link";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import OrderTracker from "@/components/OrderTracker";
@@ -16,20 +16,32 @@ export default function OrderDetailPage({
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchOrder = () => {
-      fetch(`/api/orders/${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data.error) setOrder(data);
-          setLoading(false);
-        });
-    };
-
-    fetchOrder();
-    const interval = setInterval(fetchOrder, 10000);
-    return () => clearInterval(interval);
+  const fetchOrder = useCallback(() => {
+    fetch(`/api/orders/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setOrder(data);
+        setLoading(false);
+      });
   }, [id]);
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
+
+  useEffect(() => {
+    const events = new EventSource("/api/orders/events");
+    events.addEventListener("order-change", (message) => {
+      const event = JSON.parse((message as MessageEvent).data);
+      if (event.orderId === id) fetchOrder();
+    });
+
+    const interval = setInterval(fetchOrder, 10000);
+    return () => {
+      events.close();
+      clearInterval(interval);
+    };
+  }, [fetchOrder, id]);
 
   if (loading) {
     return (
@@ -115,7 +127,7 @@ export default function OrderDetailPage({
         <h2 className="mb-6 font-semibold text-gray-900">Order Status</h2>
         <OrderTracker status={order.status} />
         <p className="mt-4 text-xs text-gray-400">
-          Status updates automatically every 10 seconds.
+          Status updates automatically.
         </p>
       </div>
     </div>

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     return unauthorizedResponse();
   }
 
-  let orders = getOrders();
+  let orders = await getOrders();
   if (session?.phone) {
     orders = orders.filter((o) => o.customerPhone === session.phone);
   } else if (phone) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const order = createOrder({
+  const order = await createOrder({
     customerName,
     customerPhone,
     items,

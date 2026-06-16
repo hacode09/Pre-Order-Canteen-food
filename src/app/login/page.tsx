@@ -9,13 +9,12 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [pin, setPin] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setMessage("");
@@ -23,55 +22,28 @@ export default function LoginPage() {
 
     try {
       if (!name.trim()) {
-        setError("Please enter your name before sending OTP.");
+        setError("Please enter your name.");
         setLoading(false);
         return;
       }
 
-      const response = await fetch("/api/auth/otp", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, name }),
+        body: JSON.stringify({ phone, name, pin }),
       });
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error || "Unable to send OTP.");
+        setError(data.error || "Unable to log in.");
         return;
       }
 
-      setStep("otp");
-      setMessage(data.message || "Enter the code we sent to your phone.");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, otp, name }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || "OTP verification failed.");
-        return;
-      }
-
-      login({ name, phone });
+      login({ name: data.name, phone: data.phone });
+      setMessage("Login successful.");
       router.push("/orders");
     } catch {
-      setError("Unable to verify OTP. Please try again.");
+      setError("Unable to log in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,13 +54,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
         <div className="mb-6 text-center">
           <span className="mb-3 block text-5xl">📱</span>
-          <h1 className="text-3xl font-bold text-gray-900">Login with OTP</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Customer Login</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Enter your phone number and verify with the code we send you.
+            Enter your phone number and 4-digit password.
           </p>
         </div>
 
-        <form onSubmit={step === "phone" ? handleSendOtp : handleVerifyOtp} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Name
@@ -116,21 +88,22 @@ export default function LoginPage() {
             />
           </div>
 
-          {step === "otp" && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                OTP Code
-              </label>
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                placeholder="Enter 6-digit OTP"
-                required
-              />
-            </div>
-          )}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              4-digit Password
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="\d{4}"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              placeholder="Enter 4-digit password"
+              required
+            />
+          </div>
 
           {message && (
             <p className="rounded-2xl bg-green-50 p-3 text-sm text-green-700">
@@ -148,27 +121,8 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-2xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-60"
           >
-            {loading
-              ? "Please wait..."
-              : step === "phone"
-              ? "Send OTP"
-              : "Verify OTP"}
+            {loading ? "Please wait..." : "Login"}
           </button>
-
-          {step === "otp" && (
-            <button
-              type="button"
-              onClick={() => {
-                setStep("phone");
-                setOtp("");
-                setMessage("");
-                setError("");
-              }}
-              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-orange-300 hover:text-orange-600"
-            >
-              Use a different phone number
-            </button>
-          )}
         </form>
       </div>
     </div>

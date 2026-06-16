@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Order } from "@/types";
@@ -15,6 +15,16 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(false);
   const [userMessage, setUserMessage] = useState<string>("");
 
+  const fetchOrders = useCallback(async (searchPhone?: string) => {
+    setLoading(true);
+    const query = searchPhone ? `?phone=${encodeURIComponent(searchPhone)}` : "";
+    const res = await fetch(`/api/orders${query}`);
+    const data = await res.json();
+    setOrders(data || []);
+    setSearched(true);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     fetch("/api/auth/user")
       .then((res) => res.json())
@@ -27,17 +37,20 @@ export default function OrdersPage() {
         }
       })
       .catch(() => undefined);
-  }, []);
+  }, [fetchOrders]);
 
-  const fetchOrders = async (searchPhone?: string) => {
-    setLoading(true);
-    const query = searchPhone ? `?phone=${encodeURIComponent(searchPhone)}` : "";
-    const res = await fetch(`/api/orders${query}`);
-    const data = await res.json();
-    setOrders(data || []);
-    setSearched(true);
-    setLoading(false);
-  };
+  useEffect(() => {
+    if (!userPhone) return;
+
+    const events = new EventSource("/api/orders/events");
+    events.addEventListener("order-change", () => fetchOrders());
+
+    const interval = setInterval(() => fetchOrders(), 15000);
+    return () => {
+      events.close();
+      clearInterval(interval);
+    };
+  }, [fetchOrders, userPhone]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

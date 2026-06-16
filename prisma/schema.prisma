@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  name      String
+  description String
+  price     Int      // in cents (e.g., 500 = $5.00)
+  category  String   // breakfast, lunch, snacks, beverages, desserts
+  image     String   // emoji
+  prepTime  Int      // minutes
+  available Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([category])
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  customerName  String
+  customerPhone String
+  items         OrderItem[]
+  total         Int      // in cents
+  status        String   @default("pending") // pending, confirmed, preparing, ready, completed, cancelled
+  pickupTime    String
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([customerPhone])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  menuItemId String
+  orderId   String
+  name      String
+  price     Int      // in cents
+  quantity  Int
+
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([menuItemId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  pinHash   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

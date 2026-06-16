@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Order, OrderStatus, ORDER_STATUS_LABELS } from "@/types";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
@@ -9,17 +9,26 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<"all" | "active" | OrderStatus>("all");
 
-  const fetchOrders = () => {
+  const fetchOrders = useCallback(() => {
     fetch("/api/orders")
       .then((r) => r.json())
       .then(setOrders);
-  };
+  }, []);
 
   useEffect(() => {
     fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    const events = new EventSource("/api/orders/events");
+    events.addEventListener("order-change", fetchOrders);
+
     const interval = setInterval(fetchOrders, 15000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      events.close();
+      clearInterval(interval);
+    };
+  }, [fetchOrders]);
 
   const updateStatus = async (id: string, status: OrderStatus) => {
     await fetch(`/api/orders/${id}`, {

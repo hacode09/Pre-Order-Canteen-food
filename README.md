@@ -1,6 +1,6 @@
 # CanteenPre — Food Pre-Order System
 
-A canteen food pre-ordering platform built with **Next.js**, **React**, and **TypeScript**.
+A canteen food pre-ordering platform built with **Next.js**, **React**, **TypeScript**, and **PostgreSQL**.
 
 ## Features
 
@@ -14,6 +14,23 @@ A canteen food pre-ordering platform built with **Next.js**, **React**, and **Ty
 
 ```bash
 npm install
+```
+
+Create a `.env` file before running the database commands:
+
+```bash
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
+ADMIN_PASSWORD=admin123
+CUSTOMER_PIN_SECRET="change-this-random-secret"
+```
+
+Customer login uses phone number plus a 4-digit password. New phone numbers are registered automatically on first login.
+
+Then initialize Prisma and start the app:
+
+```bash
+npm run db:generate
+npm run db:migrate
 npm run dev
 ```
 
@@ -52,7 +69,8 @@ Customers do **not** see any admin links in the navigation.
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- File-based JSON storage
+- PostgreSQL
+- Prisma ORM
 
 ## API Routes
 

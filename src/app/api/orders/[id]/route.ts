@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const order = getOrder(id);
+  const order = await getOrder(id);
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
@@ -39,7 +39,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Status is required" }, { status: 400 });
   }
 
-  const order = updateOrderStatus(id, status);
+  const order = await updateOrderStatus(id, status);
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }

@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const item = getMenuItem(id);
+  const item = await getMenuItem(id);
   if (!item) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
@@ -22,7 +22,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  const item = updateMenuItem(id, body);
+  const item = await updateMenuItem(id, body);
   if (!item) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
@@ -36,7 +36,7 @@ export async function DELETE(
   if (!isAdminRequest(request)) return unauthorizedResponse();
 
   const { id } = await params;
-  const deleted = deleteMenuItem(id);
+  const deleted = await deleteMenuItem(id);
   if (!deleted) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
