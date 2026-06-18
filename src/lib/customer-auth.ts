@@ -40,10 +40,7 @@ export async function loginOrCreateCustomer({
     }
 
     if (existingCustomer.name !== name) {
-      return prisma.customer.update({
-        where: { phone },
-        data: { name },
-      });
+      throw new Error("INVALID_NAME");
     }
 
     return existingCustomer;

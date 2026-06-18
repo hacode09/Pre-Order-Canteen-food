@@ -29,15 +29,23 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const session = getUserSession(request);
+
+  if (!session?.phone) {
+    return NextResponse.json(
+      { error: "Please login before placing an order." },
+      { status: 401 }
+    );
+  }
   const body = await request.json();
   const { customerName, customerPhone, items, pickupTime, notes } = body;
 
-  if (!customerName || !customerPhone || !items?.length || !pickupTime) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 }
-    );
-  }
+  if (
+  customerPhone !== session.phone ||
+  customerName !== session.name
+) {
+  return unauthorizedResponse();
+}
 
   const order = await createOrder({
     customerName,

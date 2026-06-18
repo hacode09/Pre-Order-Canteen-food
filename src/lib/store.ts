@@ -10,8 +10,8 @@ import {
 } from "@/types";
 import { emitOrderChange } from "./order-events";
 import { SEED_MENU } from "./seed";
-
 const adapter = new PrismaPg(process.env.DATABASE_URL ?? "");
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =

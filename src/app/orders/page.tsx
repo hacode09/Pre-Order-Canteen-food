@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Order } from "@/types";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 
 export default function OrdersPage() {
@@ -14,6 +16,15 @@ export default function OrdersPage() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userMessage, setUserMessage] = useState<string>("");
+
+  const router = useRouter();
+  const { authenticated, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !authenticated) {
+      router.push("/login");
+    }
+  }, [authenticated, authLoading, router]);
 
   const fetchOrders = useCallback(async (searchPhone?: string) => {
     setLoading(true);
@@ -62,6 +73,18 @@ export default function OrdersPage() {
     setUserMessage("");
     await fetchOrders(phone.trim());
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null;
+  }
 
   return (
     <div>

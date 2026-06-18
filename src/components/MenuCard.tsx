@@ -3,6 +3,8 @@
 import { MenuItem } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface MenuCardProps {
   item: MenuItem;
@@ -10,6 +12,17 @@ interface MenuCardProps {
 
 export default function MenuCard({ item }: MenuCardProps) {
   const { addItem } = useCart();
+const { authenticated } = useAuth();
+const router = useRouter();
+
+const handleAddToCart = () => {
+  if (!authenticated) {
+    router.push("/login");
+    return;
+  }
+
+  addItem(item);
+};
 
   return (
     <div
@@ -34,8 +47,9 @@ export default function MenuCard({ item }: MenuCardProps) {
           {formatCurrency(item.price)}
         </span>
         <button
-          onClick={() => addItem(item)}
+          onClick={handleAddToCart}
           disabled={!item.available}
+          
           className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
         >
           {item.available ? "Add to Cart" : "Unavailable"}

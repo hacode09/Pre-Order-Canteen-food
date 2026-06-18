@@ -15,39 +15,49 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setMessage("");
+  setLoading(true);
 
-    try {
-      if (!name.trim()) {
-        setError("Please enter your name.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, name, pin }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || "Unable to log in.");
-        return;
-      }
-
-      login({ name: data.name, phone: data.phone });
-      setMessage("Login successful.");
-      router.push("/orders");
-    } catch {
-      setError("Unable to log in. Please try again.");
-    } finally {
-      setLoading(false);
+  try {
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
     }
-  };
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phone, name, pin }),
+    });
+
+    const data = await response.json();
+
+    console.log("Status:", response.status);
+    console.log("Data:", data);
+
+    if (!response.ok) {
+      setError(data.error || "Unable to log in.");
+      return;
+    }
+
+    login({
+      name: data.name,
+      phone: data.phone,
+    });
+
+    setMessage("Login successful.");
+    router.push("/orders");
+  } catch (err) {
+    console.error("FETCH ERROR:", err);
+    setError("Unable to log in. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
